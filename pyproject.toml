@@ -1,0 +1,47 @@
+[project]
+name = "tornopen"
+version = "0.1.0"
+description = "Type-annotated request validation, error handling, and automatic OpenAPI/Redoc docs for Tornado RequestHandlers."
+authors = [
+    { name = "Jack Sim", email = "jsim89@gmail.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "tornado",
+    "pydantic>=2",
+    "apispec",
+    "typing_extensions",
+]
+
+[project.optional-dependencies]
+orjson = ["orjson"]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-tornado",
+    "setuptools<81",
+    "ruff",
+    "ty",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tornopen"]
+
+[tool.ruff]
+src = ["src", "tests"]
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ty]
+python-version = "3.10"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
