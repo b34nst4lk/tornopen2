@@ -31,6 +31,15 @@ async def test_typed_list_query_param_split(app, http_client, base_url):
 
 
 @pytest.mark.gen_test
+async def test_typed_list_query_param_single(app, http_client, base_url):
+    app.add_handlers(r".*", [("/", ListIntHandler)])
+    response = await http_client.fetch(
+        f"{base_url}?param=1", raise_error=False
+    )
+    assert response.code == 200
+
+
+@pytest.mark.gen_test
 async def test_typed_list_query_param_invalid_element(app, http_client, base_url):
     app.add_handlers(r".*", [("/", ListIntHandler)])
     response = await http_client.fetch(
