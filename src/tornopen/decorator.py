@@ -58,7 +58,10 @@ def is_primitive(type_: Type):
     if _is_primitive(type_):
         return True
     if get_args(type_):
-        return all(is_primitive(t) or t is type(None) for t in get_args(type))
+        return all(
+            (is_primitive(t) or t is type(None)) and not is_collection(t)
+            for t in get_args(type_)
+        )
 
     return False
 
@@ -73,7 +76,10 @@ def is_collection(type_: Type):
     if get_origin(type_) in (list, set):
         return True
     if get_args(type_):
-        return all(t in (list, set) or t is type(None) for t in get_args(type_))
+        return all(
+            get_origin(t) in (list, set) or t in (list, set) or t is type(None)
+            for t in get_args(type_)
+        )
     return False
 
 
