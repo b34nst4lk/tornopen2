@@ -65,6 +65,14 @@ async def test_missing_content_type_with_body_returns_415(app, http_client, base
         raise_error=False,
     )
     assert response.code == 415
+    body = json.loads(response.body)
+    assert body == {
+        "error": {
+            "type": "unsupported_media_type",
+            "message": "Content-Type must be application/json",
+        }
+    }
+    assert response.headers["Content-Type"].startswith("application/json")
 
 
 custom_factory = ValidateArgumentsDecoratorFactory()
