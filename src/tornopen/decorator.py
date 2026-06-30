@@ -36,7 +36,7 @@ from tornado.web import RequestHandler
 
 import logging
 
-from .http_error import HTTPError, RequestValidationError
+from .http_error import HTTPError, RequestValidationError, UnsupportedMediaTypeError
 from .model import BaseModel, QueryParams, RequestBody
 
 if TYPE_CHECKING:
@@ -83,12 +83,22 @@ def is_collection(type_: Type):
     return False
 
 
-def retrieve_request_body(request: HTTPServerRequest) -> bytes | None:
-    if request.body_arguments:
-        return request.body_arguments
+def retrieve_request_body(
+    request: HTTPServerRequest,
+) -> tuple[bytes | None, bool]:
+    """Return (body, is_json).
 
+    - JSON body: (raw bytes, True)
+    - Non-JSON body present: (None, False) — caller raises 415
+    - No body: (None, True) — caller lets pydantic raise 400 on missing field
+    """
     content_type = request.headers.get("Content-Type", "")
-    return request.body if content_type.startswith("application/json") else None
+    is_json = content_type.startswith("application/json")
+    if is_json:
+        return request.body, True
+    if request.body:
+        return None, False
+    return None, True
 
 
 def retrieve_query_arguments(request_handler: RequestHandler, fields) -> Dict[str, Any]:
@@ -320,17 +330,25 @@ class ValidateArgumentsDecoratorFactory:
                     **retrieve_query_arguments(request_handler, _func.__annotations__),
                 }
 
-                if wrapper.request_body_name:
-                    request_handler_kwargs[wrapper.request_body_name] = json.loads(
-                        retrieve_request_body(request_handler.request)
-                    )
-
                 # initialize default values
                 status_code = 200
                 payload = None
 
                 # attempt to execute function
                 try:
+                    if wrapper.request_body_name:
+                        body, is_json = retrieve_request_body(
+                            request_handler.request
+                        )
+                        if not is_json:
+                            raise UnsupportedMediaTypeError(
+                                415,
+                                error_type="unsupported_media_type",
+                                error_message="Content-Type must be application/json",
+                            )
+                        request_handler_kwargs[wrapper.request_body_name] = (
+                            json.loads(body) if body else {}
+                        )
                     validated_arguments = wrapper.validate_request(
                         *path_args, **request_handler_kwargs
                     )
@@ -341,6 +359,7 @@ class ValidateArgumentsDecoratorFactory:
                     status_code, payload = handle_exception(e)
                     request_handler.set_status(status_code)
                     if payload:
+                        request_handler.set_header("Content-Type", "application/json")
                         request_handler.write(payload)
                     return
 

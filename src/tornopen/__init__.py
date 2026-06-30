@@ -9,7 +9,11 @@ from .decorator import (
     validate_arguments,
 )
 from .document import documenter
-from .http_error import HTTPError, RequestValidationError
+from .http_error import (
+    HTTPError,
+    RequestValidationError,
+    UnsupportedMediaTypeError,
+)
 from .model import BaseModel, Enum, Field, QueryParams, RequestBody, ResponseBody, StrEnum
 
 __all__ = [
@@ -23,6 +27,7 @@ __all__ = [
     # http_error
     "HTTPError",
     "RequestValidationError",
+    "UnsupportedMediaTypeError",
     # model
     "Annotated",
     "BaseModel",

@@ -73,70 +73,44 @@ Branch: `chore/package-bootstrap` → PR #1 → MERGED to `main` (squash).
 
 ---
 
-## Phase 1 — Fix `is_primitive`/`is_collection` `get_args` typo (#1)
+## Phase 1 — Fix `is_primitive`/`is_collection` `get_args` typo (#1) — DONE
 
-- [ ] (1) Tests: `tests/decorator/test_typed_list_query_params.py`:
-  - [ ] `list[int]` handler: `?param=1,2,3` → 200; `?param=1,abc` → 400.
-  - [ ] `Optional[list[int]]` handler: omitted → 200.
-  - [ ] Red before fix.
-- [ ] (2) Impl: `src/tornopen/decorator.py:61` and `:76` — `get_args(type)` → `get_args(type_)`.
-- [ ] (3) Verify: new tests green; no regressions.
-- [ ] (4) Branch off `main` (after plan PR merged), commit, push, PR, wait:
-  ```
-  git switch -c fix/phase-1-is-primitive-get-args-typo  # off updated main
-  git add src/tornopen/decorator.py tests/decorator/test_typed_list_query_params.py
-  git commit -m "fix(decorator): correct get_args() typo breaking typed-list query params"
-  git push -u origin fix/phase-1-is-primitive-get-args-typo
-  gh pr create --base main --head fix/phase-1-is-primitive-get-args-typo \
-    --title "fix(decorator): correct get_args() typo breaking typed-list query params"
-  # STOP — wait for user to merge before Phase 2
-  ```
+- [x] (1) Tests: `tests/decorator/test_typed_list_query_params.py`:
+  - [x] `list[int]` handler: `?param=1,2,3` → 200; `?param=1,abc` → 400.
+  - [x] `Optional[list[int]]` handler: omitted → 200; `?param=1,2,3` → 200.
+  - [x] Red before fix.
+- [x] (2) Impl: `get_args(type)` → `get_args(type_)`; exclude collections from `is_primitive` recursion; recognize parameterized `list`/`set` via `get_origin` in `is_collection`.
+- [x] (3) Verify: new tests green; no regressions.
+- [x] (4) PR #3 → MERGED.
 
 ---
 
-## Phase 2 — Fix `exclude_none` factory arg no-op (#2)
+## Phase 2 — Fix `exclude_none` factory arg no-op (#2) — DONE
 
-- [ ] (1) Tests: `tests/decorator/test_exclude_none.py`:
-  - [ ] `factory = ValidateArgumentsDecoratorFactory(exclude_none=True)`.
-  - [ ] Handler returns `Response` with `Optional[str] = None` field.
-  - [ ] Assert response JSON omits the key. Red now.
-- [ ] (2) Impl: `src/tornopen/decorator.py:277` — bind `self.exclude_none` in wrapper (drop `__call__`'s `exclude_none` kwarg or default to `self.exclude_none`).
-- [ ] (3) Verify.
-- [ ] (4) Branch off `fix/phase-1-...`, commit, push, PR (base phase-1), wait:
-  ```
-  git switch -c fix/phase-2-exclude-none-factory-arg  # off phase-1 branch
-  git add src/tornopen/decorator.py tests/decorator/test_exclude_none.py
-  git commit -m "fix(decorator): honor ValidateArgumentsDecoratorFactory(exclude_none=...)"
-  git push -u origin fix/phase-2-exclude-none-factory-arg
-  gh pr create --base fix/phase-1-is-primitive-get-args-typo --head fix/phase-2-exclude-none-factory-arg \
-    --title "fix(decorator): honor ValidateArgumentsDecoratorFactory(exclude_none=...)"
-  # STOP — wait for user to merge before Phase 3
-  ```
+- [x] (1) Tests: `tests/decorator/test_exclude_none.py`:
+  - [x] `factory = ValidateArgumentsDecoratorFactory(exclude_none=True)`.
+  - [x] Handler returns `Response` with `Optional[str] = None` field.
+  - [x] Assert response JSON omits the key. Red before fix.
+- [x] (2) Impl: `__call__`'s `exclude_none` defaults to `None`; wrapper uses `effective_exclude_none` (per-decorator override → factory setting).
+- [x] (3) Verify: 272 passed (+1), no regressions.
+- [x] (4) PR #4 → MERGED.
 
 ---
 
-## Phase 3 — 415 for non-JSON request bodies (#3)
+## Phase 3 — 415 for non-JSON request bodies (#3) — DONE
 
-- [ ] (1) Tests: `tests/decorator/test_request_body_content_type.py`:
-  - [ ] Form-encoded POST to `RequestBody` handler → 415 + `error.type == "unsupported_media_type"`.
-  - [ ] JSON POST → 200.
-  - [ ] No Content-Type + no body → 400 validation_error.
-  - [ ] User-registered `@exception_handler(UnsupportedMediaTypeError)` override → custom status/body.
-- [ ] (2) Impl:
-  - [ ] `src/tornopen/http_error.py`: new `UnsupportedMediaTypeError(HTTPError)` (status 415, `error_type="unsupported_media_type"`); add to `__all__`.
-  - [ ] `src/tornopen/decorator.py`: register default handler in `ValidateArgumentsDecoratorFactory.exception_handlers`; in wrapper, when `request_body_name` set and Content-Type present and non-JSON → raise `UnsupportedMediaTypeError`.
-  - [ ] `retrieve_request_body` returns `None` for non-JSON (Content-Type-gated).
-- [ ] (3) Verify.
-- [ ] (4) Branch off `fix/phase-2-...`, commit, push, PR (base phase-2), wait:
-  ```
-  git switch -c fix/phase-3-415-non-json-bodies  # off phase-2 branch
-  git add src/tornopen/http_error.py src/tornopen/decorator.py src/tornopen/__init__.py tests/decorator/test_request_body_content_type.py
-  git commit -m "fix(decorator): return 415 for non-JSON bodies to RequestBody handlers"
-  git push -u origin fix/phase-3-415-non-json-bodies
-  gh pr create --base fix/phase-2-exclude-none-factory-arg --head fix/phase-3-415-non-json-bodies \
-    --title "fix(decorator): return 415 for non-JSON bodies to RequestBody handlers"
-  # STOP — wait for user to merge before Phase 4
-  ```
+- [x] (1) Tests: `tests/decorator/test_request_body_content_type.py`:
+  - [x] Form-encoded POST to `RequestBody` handler → 415 + `error.type == "unsupported_media_type"`.
+  - [x] JSON POST → 200.
+  - [x] Missing Content-Type + body → 415.
+  - [x] User-registered `@exception_handler(UnsupportedMediaTypeError)` override → custom status/body.
+  - [x] Direct raise `UnsupportedMediaTypeError` → 415.
+- [x] (2) Impl:
+  - [x] `src/tornopen/http_error.py`: new `UnsupportedMediaTypeError(HTTPError)` (415, `error_type="unsupported_media_type"`); exported in `__all__`.
+  - [x] `retrieve_request_body` returns `(body, is_json)` tuple; Content-Type-gated.
+  - [x] Wrapper raises `UnsupportedMediaTypeError` for non-JSON when body expected; moved inside validation try/except; sets `Content-Type: application/json` on error path.
+- [x] (3) Verify: 277 passed (+5), no regressions.
+- [x] (4) PR (this PR).
 
 ---
 
