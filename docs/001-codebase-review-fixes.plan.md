@@ -110,30 +110,21 @@ Branch: `chore/package-bootstrap` → PR #1 → MERGED to `main` (squash).
   - [x] `retrieve_request_body` returns `(body, is_json)` tuple; Content-Type-gated.
   - [x] Wrapper raises `UnsupportedMediaTypeError` for non-JSON when body expected; moved inside validation try/except; sets `Content-Type: application/json` on error path.
 - [x] (3) Verify: 277 passed (+5), no regressions.
-- [x] (4) PR (this PR).
+- [x] (4) PR #5 → MERGED.
 
 ---
 
-## Phase 4 — `RequestValidationError` int status + Content-Type on 400 path (#4, #5)
+## Phase 4 — `RequestValidationError` int status + Content-Type on 400 path (#4, #5) — DONE
 
-- [ ] (1) Tests: extend `tests/decorator/test_validation_error_handling.py`:
-  - [ ] Custom handler reading `e.status_code` asserts `== 400` (int).
-  - [ ] 400 response has `Content-Type: application/json`.
-  - [ ] Leave existing literal-string assertion as-is (deferred to error-UX pass).
-- [ ] (2) Impl:
-  - [ ] `src/tornopen/decorator.py:247` `status_code="400"` → `400`.
-  - [ ] `src/tornopen/decorator.py:322-334` early-return sets `Content-Type: application/json` before `write`.
-- [ ] (3) Verify.
-- [ ] (4) Branch off `fix/phase-3-...`, commit, push, PR (base phase-3), wait:
-  ```
-  git switch -c fix/phase-4-validation-error-int-status  # off phase-3 branch
-  git add src/tornopen/decorator.py tests/decorator/test_validation_error_handling.py
-  git commit -m "fix(decorator): int status_code on RequestValidationError; JSON Content-Type on 400 path"
-  git push -u origin fix/phase-4-validation-error-int-status
-  gh pr create --base fix/phase-3-415-non-json-bodies --head fix/phase-4-validation-error-int-status \
-    --title "fix(decorator): int status_code on RequestValidationError; JSON Content-Type on 400 path"
-  # STOP — wait for user to merge before Phase 5
-  ```
+- [x] (1) Tests: extend `tests/decorator/test_validation_error_handling.py`:
+  - [x] Custom handler reading `e.status_code` asserts `== 400` (int).
+  - [x] 400 response has `Content-Type: application/json`.
+  - [x] Leave existing literal-string assertion as-is (deferred to error-UX pass).
+- [x] (2) Impl:
+  - [x] `decorator.py:265` `status_code="400"` → `400` (int).
+  - [x] Content-Type on 400 error path already set in Phase 3.
+- [x] (3) Verify: 279 passed (+2), no regressions.
+- [x] (4) PR (this PR).
 
 ---
 

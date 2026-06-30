@@ -262,7 +262,7 @@ class ValidateHTTPCallWrapper:
         except ValidationError as e:
             raise RequestValidationError(
                 e,
-                status_code="400",
+                status_code=400,
                 error_type="validation_error",
             ) from e
 

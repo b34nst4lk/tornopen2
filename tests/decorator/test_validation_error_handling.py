@@ -59,3 +59,42 @@ async def test_custom_validation_error(app, http_client, base_url):
     response = await http_client.fetch(f"{base_url}?query_param=abc", raise_error=False)
     assert response.code == 402
     assert json.loads(response.body) == "('query_param',)"
+
+
+int_status_factory = ValidateArgumentsDecoratorFactory()
+
+
+@int_status_factory.exception_handler(RequestValidationError)
+def handle_validation_exception_reads_status(e: RequestValidationError):
+    # e.status_code must be an int (was "400" string before fix)
+    assert isinstance(e.status_code, int)
+    assert e.status_code == 400
+    return e.status_code, json.dumps({"ok": True})
+
+
+class IntStatusHandler(RequestHandler):
+    @int_status_factory
+    async def get(self, query_param: int):
+        pass
+
+
+@pytest.mark.gen_test
+async def test_request_validation_error_status_code_is_int(app, http_client, base_url):
+    app.add_handlers(r".*", [("/", IntStatusHandler)])
+    response = await http_client.fetch(
+        f"{base_url}?query_param=abc", raise_error=False
+    )
+    assert response.code == 400
+    assert json.loads(response.body) == {"ok": True}
+
+
+@pytest.mark.gen_test
+async def test_default_validation_error_sets_json_content_type(
+    app, http_client, base_url
+):
+    app.add_handlers(r".*", [("/", DefaultValidationErrorRequestHandler)])
+    response = await http_client.fetch(
+        f"{base_url}?query_param=abc", raise_error=False
+    )
+    assert response.code == 400
+    assert response.headers["Content-Type"].startswith("application/json")
