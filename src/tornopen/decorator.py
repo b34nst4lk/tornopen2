@@ -284,7 +284,7 @@ class ValidateArgumentsDecoratorFactory:
         self,
         func: Optional["AnyCallableT"] = None,
         *,
-        exclude_none: bool = False,
+        exclude_none: Optional[bool] = None,
     ) -> Any:
         """
         This replaces the validate_arguments decorator provided by Pydantic, and is
@@ -295,10 +295,15 @@ class ValidateArgumentsDecoratorFactory:
 
         Args:
             func: http method defined in subclass of `tornado.web.RequestHandler`
+            exclude_none: per-decorator override; defaults to the factory's setting
         Returns:
             wrapped function that validates function parameters before the nested
             function is called
         """
+
+        effective_exclude_none = (
+            self.exclude_none if exclude_none is None else exclude_none
+        )
 
         def validate(_func: "AnyCallable") -> "AnyCallable":
             wrapper = ValidateHTTPCallWrapper(_func)
@@ -348,7 +353,8 @@ class ValidateArgumentsDecoratorFactory:
                         result = wrapper.execute(request_handler, **validated_arguments)
                     if result:
                         payload = result.model_dump_json(
-                            exclude_none=exclude_none, exclude_unset=False
+                            exclude_none=effective_exclude_none,
+                            exclude_unset=False,
                         )
                 # handle exception from function execution
                 except Exception as e:
