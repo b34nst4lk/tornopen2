@@ -27,6 +27,25 @@ class HTTPError(Exception):
         return self.error_message
 
 
+class UnsupportedMediaTypeError(HTTPError):
+    """Raised when a handler expects a JSON request body but the request
+    Content-Type is not application/json (or no Content-Type is provided
+    with a non-empty body)."""
+
+    def __init__(
+        self,
+        status_code: int = 415,
+        *,
+        error_type: str = "unsupported_media_type",
+        error_message: str = "Content-Type must be application/json",
+    ):
+        super().__init__(
+            status_code,
+            error_type=error_type,
+            error_message=error_message,
+        )
+
+
 class RequestValidationError(HTTPError):
     """
     This error is raised specifically when the request has failed validation.
