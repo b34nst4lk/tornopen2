@@ -158,29 +158,20 @@ The decorator was also stack-order fragile (sync wrapper must sit below
 - [x] (2) Impl: removed `cast_enum_to_str` from `decorator.py`,
   `__init__.py`, and `__all__`. Cleaned unused `Enum` import.
 - [x] (3) Verify: full suite green, no regressions.
-- [x] (4) PR (this PR).
+- [x] (4) PR #8 → MERGED.
 
 ---
 
-## Phase 7 — `documenter` mutation leak + `create_api_spec` try/finally (#7, #8)
+## Phase 7 — `documenter` mutation leak + `create_api_spec` try/finally (#7, #8) — DONE
 
-- [ ] (1) Tests: `tests/api_spec/test_documenter_no_mutation.py`:
-  - [ ] Handler without `_doc_category` post-`documenter`: assert `'_doc_category' not in handler_class.__dict__`.
-  - [ ] Force `api_spec.path` to raise, post-`documenter`: assert `not hasattr(handler_class, 'handler_class_params')`.
-- [ ] (2) Impl:
-  - [ ] `src/tornopen/document.py:45` `_categorize_rules` uses `getattr(handler_class, "_doc_category", "undocumented")` without `setattr`.
-  - [ ] `src/tornopen/api_spec/create_api_spec.py:126-134` `try/finally` with `del handler.handler_class_params` in `finally`.
-- [ ] (3) Verify.
-- [ ] (4) Branch off `fix/phase-6-...`, commit, push, PR (base phase-6), wait:
-  ```
-  git switch -c fix/phase-7-documenter-no-mutation  # off phase-6 branch
-  git add src/tornopen/document.py src/tornopen/api_spec/create_api_spec.py tests/api_spec/test_documenter_no_mutation.py
-  git commit -m "fix(document): stop mutating handler classes; try/finally around spec build"
-  git push -u origin fix/phase-7-documenter-no-mutation
-  gh pr create --base fix/phase-6-cast-enum-stacking-doc --head fix/phase-7-documenter-no-mutation \
-    --title "fix(document): stop mutating handler classes; try/finally around spec build"
-  # STOP — wait for user to merge before Phase 8
-  ```
+- [x] (1) Tests: `tests/api_spec/test_documenter_no_mutation.py`:
+  - [x] Handler without `_doc_category` post-`documenter`: assert `'_doc_category' not in handler_class.__dict__`.
+  - [x] Force `api_spec.path` to raise, post-`documenter`: assert `not hasattr(handler_class, 'handler_class_params')`.
+- [x] (2) Impl:
+  - [x] `_categorize_rules` uses `getattr(handler_class, "_doc_category", "undocumented")` without `setattr`.
+  - [x] `create_api_spec` wraps `api_spec.path` in `try/finally` with `del handler.handler_class_params` in `finally`.
+- [x] (3) Verify: 273 passed (+3), no regressions.
+- [x] (4) PR (this PR).
 
 ---
 
