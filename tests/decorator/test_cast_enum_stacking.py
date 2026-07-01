@@ -28,6 +28,7 @@ async def test_validate_arguments_outer_cast_enum_inner(app, http_client, base_u
         f"{base_url}?param=value1", raise_error=False
     )
     assert response.code == 200
+    assert response.body == b"success"
 
 
 class WrongOrderHandler(RequestHandler):
