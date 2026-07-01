@@ -4,7 +4,7 @@ in the pydantic library. This decorator is currently still an experiment, and
 is not official supported by pydantic until version 2.0.
 """
 
-from enum import Enum, EnumType
+from enum import EnumType
 from functools import wraps
 from inspect import isclass, iscoroutinefunction, signature
 from typing import (
@@ -114,28 +114,6 @@ def retrieve_query_arguments(request_handler: RequestHandler, fields) -> Dict[st
             continue
 
     return query_parameters
-
-
-def cast_enum_to_str(func):
-    """
-    This decorator allows us to strictly cast any enum values passed in to their
-    string values
-    """
-
-    @wraps(func)
-    def wrapper(
-        *args: List[Any], **kwargs: Dict[str, Any]
-    ) -> Tuple[List[Any], Dict[str, Any]]:
-        parsed_args = [
-            arg.value if isinstance(arg, Enum) else arg for arg in args
-        ]  # type: ignore
-        parsed_kwargs = {
-            key: value.value if isinstance(value, Enum) else value
-            for key, value in kwargs.items()
-        }  # type: ignore
-        return func(*parsed_args, **parsed_kwargs)
-
-    return wrapper
 
 
 def is_wrapped_coroutine_function(func: Callable) -> bool:

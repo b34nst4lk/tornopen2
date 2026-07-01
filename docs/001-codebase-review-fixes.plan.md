@@ -43,7 +43,7 @@ Conventions for every phase:
 | 3 | High | `retrieve_request_body` returns dict for form-encoded → `json.loads` crashes |
 | 4 | Med | `RequestValidationError.status_code` is the string `"400"` |
 | 5 | Med | Validation-error early-return path skips `Content-Type: application/json` header |
-| 6 | Med | `cast_enum_to_str` sync wrapper only works as inner decorator of `validate_arguments` |
+| 6 | Med | `cast_enum_to_str` sync wrapper only works as inner decorator of `validate_arguments` — REMOVED (Phase 6) |
 | 7 | Med | `documenter` mutates handler classes (`_doc_category` leak) |
 | 8 | Med | `create_api_spec` leaks `handler.handler_class_params` on exception |
 | 9 | Med | `SuccessResponseModelSchema` dead code |
@@ -136,27 +136,29 @@ Branch: `chore/package-bootstrap` → PR #1 → MERGED to `main` (squash).
   - [x] Red before fix.
 - [x] (2) Impl: `http_error.py` `dict()` uses `getattr(self, "error_type", None)` / `getattr(self, "error_message", "")`; `__str__` falls back to `Exception.__str__` when `error_message` unset.
 - [x] (3) Verify: 282 passed (+2), no regressions.
-- [x] (4) PR (this PR).
+- [x] (4) PR #7 → MERGED.
 
 ---
 
-## Phase 6 — `cast_enum_to_str` doc + stacking-order test (#6, #19)
+## Phase 6 — Remove `cast_enum_to_str` (#6, #19) — DONE
 
-- [ ] (1) Tests: `tests/decorator/test_cast_enum_stacking.py`:
-  - [ ] `@validate_arguments` over `@cast_enum_to_str` → 200 (correct).
-  - [ ] Reverse order → document as unsupported (xfail or assert 500).
-- [ ] (2) Impl: doc comment on `cast_enum_to_str` (`src/tornopen/decorator.py:103`) — must sit below `validate_arguments` (relies on `__wrapped__` unwrap).
-- [ ] (3) Verify.
-- [ ] (4) Branch off `fix/phase-5-...`, commit, push, PR (base phase-5), wait:
-  ```
-  git switch -c fix/phase-6-cast-enum-stacking-doc  # off phase-5 branch
-  git add src/tornopen/decorator.py tests/decorator/test_cast_enum_stacking.py
-  git commit -m "docs(decorator): document cast_enum_to_str stacking requirement"
-  git push -u origin fix/phase-6-cast-enum-stacking-doc
-  gh pr create --base fix/phase-5-guard-http-error-dict --head fix/phase-6-cast-enum-stacking-doc \
-    --title "docs(decorator): document cast_enum_to_str stacking requirement"
-  # STOP — wait for user to merge before Phase 7
-  ```
+`cast_enum_to_str` was a pre-`StrEnum` workaround for gradual adoption:
+existing handler code expected strings from `get_query_argument`, and
+the decorator let you annotate as `Enum` (for validation + docs) while
+still receiving a string. `StrEnum` (exported by tornopen, shimmed for
+3.10) makes this unnecessary — `StrEnum` members ARE strings, so all
+downstream string operations work natively.
+
+The decorator was also stack-order fragile (sync wrapper must sit below
+`validate_arguments` or Tornado never awaits the coroutine).
+
+- [x] (1) Tests: removed `test_cast_enum_to_str.py` and
+  `test_cast_enum_stacking.py`; removed `EnumToStrHandler` from
+  `tests/decorator/__init__.py`.
+- [x] (2) Impl: removed `cast_enum_to_str` from `decorator.py`,
+  `__init__.py`, and `__all__`. Cleaned unused `Enum` import.
+- [x] (3) Verify: full suite green, no regressions.
+- [x] (4) PR (this PR).
 
 ---
 
@@ -270,7 +272,6 @@ Will be addressed together with the broader "how users manage their own errors" 
 - [ ] (2) Impl: `README.md` "Limitations" section:
   - [ ] Process-global exception-handler registry (one mapping per process).
   - [ ] `exception_finder` detects only bare-name `raise X(...)`; nested functions, re-raises, ternary raises missed.
-  - [ ] `cast_enum_to_str` must stack below `validate_arguments`.
 - [ ] (3) Verify: `uv run pytest` green (doc-only).
 - [ ] (4) Branch off `fix/phase-11-...`, commit, push, PR (base phase-11), wait:
   ```
