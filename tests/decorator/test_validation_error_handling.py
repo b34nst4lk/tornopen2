@@ -5,6 +5,7 @@ import pytest
 from tornado.web import RequestHandler
 
 from tornopen import (
+    RequestBody,
     RequestValidationError,
     ValidateArgumentsDecoratorFactory,
     validate_arguments,
@@ -83,6 +84,32 @@ async def test_request_validation_error_status_code_is_int(app, http_client, bas
     app.add_handlers(r".*", [("/", IntStatusHandler)])
     response = await http_client.fetch(
         f"{base_url}?query_param=abc", raise_error=False
+    )
+    assert response.code == 400
+    assert json.loads(response.body) == {"ok": True}
+
+
+class IntStatusBody(RequestBody):
+    value: int
+
+
+class IntStatusBodyHandler(RequestHandler):
+    @int_status_factory
+    async def post(self, body: IntStatusBody):
+        pass
+
+
+@pytest.mark.gen_test
+async def test_body_request_validation_error_status_code_is_int(
+    app, http_client, base_url
+):
+    app.add_handlers(r".*", [("/", IntStatusBodyHandler)])
+    response = await http_client.fetch(
+        base_url,
+        method="POST",
+        body=json.dumps({"value": "not-an-int"}),
+        headers={"Content-Type": "application/json"},
+        raise_error=False,
     )
     assert response.code == 400
     assert json.loads(response.body) == {"ok": True}
