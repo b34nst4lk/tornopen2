@@ -124,26 +124,19 @@ Branch: `chore/package-bootstrap` → PR #1 → MERGED to `main` (squash).
   - [x] `decorator.py:265` `status_code="400"` → `400` (int).
   - [x] Content-Type on 400 error path already set in Phase 3.
 - [x] (3) Verify: 279 passed (+2), no regressions.
-- [x] (4) PR (this PR).
+- [x] (4) PR #6 → MERGED.
 
 ---
 
-## Phase 5 — Guard `HTTPError.dict` for subclasses skipping base `__init__` (#12)
+## Phase 5 — Guard `HTTPError.dict` for subclasses skipping base `__init__` (#12) — DONE
 
-- [ ] (1) Tests: `tests/decorator/test_custom_http_error.py`:
-  - [ ] `CustomErrorWithoutMessage` raised in decorated handler → 420 + custom body, not 500. Red now.
-- [ ] (2) Impl: `src/tornopen/http_error.py:14` — `dict()` uses `getattr(self, "error_type", None)` / `getattr(self, "error_message", "")`.
-- [ ] (3) Verify.
-- [ ] (4) Branch off `fix/phase-4-...`, commit, push, PR (base phase-4), wait:
-  ```
-  git switch -c fix/phase-5-guard-http-error-dict  # off phase-4 branch
-  git add src/tornopen/http_error.py tests/decorator/test_custom_http_error.py
-  git commit -m "fix(http_error): guard dict() for subclasses that skip base __init__"
-  git push -u origin fix/phase-5-guard-http-error-dict
-  gh pr create --base fix/phase-4-validation-error-int-status --head fix/phase-5-guard-http-error-dict \
-    --title "fix(http_error): guard dict() for subclasses that skip base __init__"
-  # STOP — wait for user to merge before Phase 6
-  ```
+- [x] (1) Tests: `tests/decorator/test_custom_http_error.py`:
+  - [x] `CustomErrorWithoutMessage` (skips base `__init__`) raised → 420 + `error.type` is None, not 500.
+  - [x] `PartiallyInitializedError` (only `error_message`) → 418 + `error.type` is None + message.
+  - [x] Red before fix.
+- [x] (2) Impl: `http_error.py` `dict()` uses `getattr(self, "error_type", None)` / `getattr(self, "error_message", "")`; `__str__` falls back to `Exception.__str__` when `error_message` unset.
+- [x] (3) Verify: 282 passed (+2), no regressions.
+- [x] (4) PR (this PR).
 
 ---
 

@@ -14,17 +14,21 @@ class HTTPError(Exception):
     def dict(self):
         """
         Override this to determine how the dictionary output should look like.
-        Note that status_code must always be provided
+        Note that status_code must always be provided.
+
+        Subclasses that skip the base __init__ (and thus don't set
+        error_type/error_message) are tolerated: missing attributes default
+        to None / "".
         """
         return {
             "error": {
-                "type": self.error_type,
-                "message": self.error_message,
+                "type": getattr(self, "error_type", None),
+                "message": getattr(self, "error_message", ""),
             }
         }
 
     def __str__(self) -> str:
-        return self.error_message
+        return getattr(self, "error_message", "") or super().__str__()
 
 
 class UnsupportedMediaTypeError(HTTPError):
