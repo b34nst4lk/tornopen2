@@ -34,8 +34,6 @@ def test_documenter_cleans_handler_class_params_on_exception(app):
     with patch.object(
         core_module.TornOpenAPISpec, "path", side_effect=RuntimeError("boom")
     ):
-        try:
+        with pytest.raises(RuntimeError, match="boom"):
             documenter(app)
-        except RuntimeError:
-            pass
     assert not hasattr(PlainHandler, "handler_class_params")
