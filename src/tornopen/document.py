@@ -47,18 +47,17 @@ def documenter(application: Application, path: str = "") -> Application:
 
 
 def _categorize_rules(rules: list[URLSpec]) -> dict[str, list[URLSpec]]:
-    categories = {}
+    categories: dict[str, list[URLSpec]] = {}
     for rule in rules:
         if not isinstance(rule, URLSpec):
             continue
 
         handler_class = rule.handler_class
-        if not hasattr(handler_class, "_doc_category"):
-            handler_class._doc_category = "undocumented"
-        if handler_class._doc_category not in categories:
-            categories[handler_class._doc_category] = []
+        category = getattr(handler_class, "_doc_category", "undocumented")
+        if category not in categories:
+            categories[category] = []
 
-        categories[handler_class._doc_category].append(rule)
+        categories[category].append(rule)
     return categories
 
 

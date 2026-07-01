@@ -126,12 +126,14 @@ def create_api_spec(name: str, rules: list[URLSpec]):
         path = rule.regex
         handler = rule.handler_class
         handler.handler_class_params = HandlerParams(path, handler)
-        api_spec.path(
-            url_spec=rule,
-            handler_class=handler,
-            description=trim_docstring(handler.__doc__),
-        )
-        del handler.handler_class_params
+        try:
+            api_spec.path(
+                url_spec=rule,
+                handler_class=handler,
+                description=trim_docstring(handler.__doc__),
+            )
+        finally:
+            del handler.handler_class_params
 
     enum_tags = []
     model_tags = []
