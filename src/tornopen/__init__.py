@@ -2,7 +2,6 @@ from typing_extensions import Annotated
 
 from .decorator import (
     ValidateArgumentsDecoratorFactory,
-    cast_enum_to_str,
     doc_category,
     doc_summary,
     doc_tag,
@@ -18,7 +17,6 @@ from .model import BaseModel, Enum, Field, QueryParams, RequestBody, ResponseBod
 
 __all__ = [
     # decorator
-    "cast_enum_to_str",
     "validate_arguments",
     "doc_category",
     "doc_tag",

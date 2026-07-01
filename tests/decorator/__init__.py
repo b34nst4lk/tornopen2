@@ -4,7 +4,7 @@ from typing import Optional
 from tornado.routing import URLSpec
 from tornado.web import RequestHandler
 
-from tornopen import RequestBody, cast_enum_to_str, validate_arguments
+from tornopen import RequestBody, validate_arguments
 
 
 # Test handlers for path params and required query params tests
@@ -33,16 +33,6 @@ class EnumHandler(RequestHandler):
     @validate_arguments
     async def get(self, param: ExampleEnum):
         assert ExampleEnum(param)
-        self.set_status(200)
-        self.write("success")
-
-
-class EnumToStrHandler(RequestHandler):
-    @validate_arguments
-    @cast_enum_to_str
-    async def get(self, param: ExampleEnum):
-        assert isinstance(param, str)
-        assert ExampleEnum[param]
         self.set_status(200)
         self.write("success")
 

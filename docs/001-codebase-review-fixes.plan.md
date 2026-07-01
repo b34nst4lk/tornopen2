@@ -43,7 +43,7 @@ Conventions for every phase:
 | 3 | High | `retrieve_request_body` returns dict for form-encoded → `json.loads` crashes |
 | 4 | Med | `RequestValidationError.status_code` is the string `"400"` |
 | 5 | Med | Validation-error early-return path skips `Content-Type: application/json` header |
-| 6 | Med | `cast_enum_to_str` sync wrapper only works as inner decorator of `validate_arguments` |
+| 6 | Med | `cast_enum_to_str` sync wrapper only works as inner decorator of `validate_arguments` — REMOVED (Phase 6) |
 | 7 | Med | `documenter` mutates handler classes (`_doc_category` leak) |
 | 8 | Med | `create_api_spec` leaks `handler.handler_class_params` on exception |
 | 9 | Med | `SuccessResponseModelSchema` dead code |
@@ -140,13 +140,24 @@ Branch: `chore/package-bootstrap` → PR #1 → MERGED to `main` (squash).
 
 ---
 
-## Phase 6 — `cast_enum_to_str` doc + stacking-order test (#6, #19) — DONE
+## Phase 6 — Remove `cast_enum_to_str` (#6, #19) — DONE
 
-- [x] (1) Tests: `tests/decorator/test_cast_enum_stacking.py`:
-  - [x] `@validate_arguments` over `@cast_enum_to_str` → 200 (correct).
-  - [x] Reverse order → strict xfail (handler body doesn't run).
-- [x] (2) Impl: doc comment on `cast_enum_to_str` — must sit below `validate_arguments` (relies on `__wrapped__` unwrap).
-- [x] (3) Verify: 283 passed (+1), 1 xfailed (+1), no regressions.
+`cast_enum_to_str` was a pre-`StrEnum` workaround for gradual adoption:
+existing handler code expected strings from `get_query_argument`, and
+the decorator let you annotate as `Enum` (for validation + docs) while
+still receiving a string. `StrEnum` (exported by tornopen, shimmed for
+3.10) makes this unnecessary — `StrEnum` members ARE strings, so all
+downstream string operations work natively.
+
+The decorator was also stack-order fragile (sync wrapper must sit below
+`validate_arguments` or Tornado never awaits the coroutine).
+
+- [x] (1) Tests: removed `test_cast_enum_to_str.py` and
+  `test_cast_enum_stacking.py`; removed `EnumToStrHandler` from
+  `tests/decorator/__init__.py`.
+- [x] (2) Impl: removed `cast_enum_to_str` from `decorator.py`,
+  `__init__.py`, and `__all__`. Cleaned unused `Enum` import.
+- [x] (3) Verify: full suite green, no regressions.
 - [x] (4) PR (this PR).
 
 ---
@@ -261,7 +272,6 @@ Will be addressed together with the broader "how users manage their own errors" 
 - [ ] (2) Impl: `README.md` "Limitations" section:
   - [ ] Process-global exception-handler registry (one mapping per process).
   - [ ] `exception_finder` detects only bare-name `raise X(...)`; nested functions, re-raises, ternary raises missed.
-  - [ ] `cast_enum_to_str` must stack below `validate_arguments`.
 - [ ] (3) Verify: `uv run pytest` green (doc-only).
 - [ ] (4) Branch off `fix/phase-11-...`, commit, push, PR (base phase-11), wait:
   ```
