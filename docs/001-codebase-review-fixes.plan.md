@@ -136,27 +136,18 @@ Branch: `chore/package-bootstrap` → PR #1 → MERGED to `main` (squash).
   - [x] Red before fix.
 - [x] (2) Impl: `http_error.py` `dict()` uses `getattr(self, "error_type", None)` / `getattr(self, "error_message", "")`; `__str__` falls back to `Exception.__str__` when `error_message` unset.
 - [x] (3) Verify: 282 passed (+2), no regressions.
-- [x] (4) PR (this PR).
+- [x] (4) PR #7 → MERGED.
 
 ---
 
-## Phase 6 — `cast_enum_to_str` doc + stacking-order test (#6, #19)
+## Phase 6 — `cast_enum_to_str` doc + stacking-order test (#6, #19) — DONE
 
-- [ ] (1) Tests: `tests/decorator/test_cast_enum_stacking.py`:
-  - [ ] `@validate_arguments` over `@cast_enum_to_str` → 200 (correct).
-  - [ ] Reverse order → document as unsupported (xfail or assert 500).
-- [ ] (2) Impl: doc comment on `cast_enum_to_str` (`src/tornopen/decorator.py:103`) — must sit below `validate_arguments` (relies on `__wrapped__` unwrap).
-- [ ] (3) Verify.
-- [ ] (4) Branch off `fix/phase-5-...`, commit, push, PR (base phase-5), wait:
-  ```
-  git switch -c fix/phase-6-cast-enum-stacking-doc  # off phase-5 branch
-  git add src/tornopen/decorator.py tests/decorator/test_cast_enum_stacking.py
-  git commit -m "docs(decorator): document cast_enum_to_str stacking requirement"
-  git push -u origin fix/phase-6-cast-enum-stacking-doc
-  gh pr create --base fix/phase-5-guard-http-error-dict --head fix/phase-6-cast-enum-stacking-doc \
-    --title "docs(decorator): document cast_enum_to_str stacking requirement"
-  # STOP — wait for user to merge before Phase 7
-  ```
+- [x] (1) Tests: `tests/decorator/test_cast_enum_stacking.py`:
+  - [x] `@validate_arguments` over `@cast_enum_to_str` → 200 (correct).
+  - [x] Reverse order → strict xfail (handler body doesn't run).
+- [x] (2) Impl: doc comment on `cast_enum_to_str` — must sit below `validate_arguments` (relies on `__wrapped__` unwrap).
+- [x] (3) Verify: 283 passed (+1), 1 xfailed (+1), no regressions.
+- [x] (4) PR (this PR).
 
 ---
 

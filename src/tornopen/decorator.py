@@ -118,8 +118,22 @@ def retrieve_query_arguments(request_handler: RequestHandler, fields) -> Dict[st
 
 def cast_enum_to_str(func):
     """
-    This decorator allows us to strictly cast any enum values passed in to their
-    string values
+    Cast any enum values passed in to their string values.
+
+    Stacking requirement: cast_enum_to_str MUST be applied BELOW
+    validate_arguments (i.e. validate_arguments is the outer decorator):
+
+        @validate_arguments
+        @cast_enum_to_str
+        async def get(self, param: SomeEnum): ...
+
+    Rationale: validate_arguments uses is_wrapped_coroutine_function,
+    which unwraps __wrapped__ to detect the original coroutine. When
+    stacked correctly, unwrapping cast_enum_to_str's wrapper reaches
+    the async handler. When reversed, cast_enum_to_str's sync wrapper
+    becomes the outermost callable and swallows the coroutine returned
+    by validate_arguments' async wrapper, so Tornado never awaits it
+    and the handler body does not execute.
     """
 
     @wraps(func)
